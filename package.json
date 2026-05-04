@@ -37,7 +37,7 @@
         "eslint": "^9.13.0",
         "gulp": "^5.0.0",
         "gulp-avif": "^1.1.0",
-        "gulp-cache": "^5.0.0",
+        "gulp-cache": "^1.1.3",
         "gulp-concat": "^2.6.0",
         "gulp-dart-sass": "^1.1.0",
         "gulp-imagemin": "^9.1.0",
