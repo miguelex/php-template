@@ -41,12 +41,19 @@ final class App
 
     private static function connectDatabase(): void
     {
-        // Solo conectar si hay config de BD
-        if (empty($_ENV['DB_DATABASE'])) {
+        // Solo conectar si hay configuración de BD
+        if (empty($_ENV['DB_DATABASE']) || empty($_ENV['DB_HOST'])) {
             return;
         }
 
-        $pdo = Database::connect();
-        ActiveRecord::setDB($pdo);
+        try {
+            $pdo = Database::connect();
+            ActiveRecord::setDB($pdo);
+        } catch (\App\Exceptions\DatabaseException $e) {
+            // En desarrollo/testing sin BD disponible, continuar sin conexión
+            if (($_ENV['APP_ENV'] ?? 'local') === 'production') {
+                throw $e;
+            }
+        }
     }
 }
