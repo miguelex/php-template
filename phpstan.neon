@@ -4,13 +4,18 @@ parameters:
         - src
     excludePaths:
         - vendor
-    checkMissingIterableValueType: false
     reportUnmatchedIgnoredErrors: false
     treatPhpDocTypesAsCertain: false
+
+    # Constantes definidas en runtime (public/index.php)
+    constants:
+        - BASE_PATH
 
     # Reglas extra recomendadas
     checkGenericClassInNonGenericObjectType: true
     checkUninitializedProperties: true
 
-    # Ignorar errores de terceros
-    ignoreErrors: []
+    ignoreErrors:
+        # Sustituye el deprecado checkMissingIterableValueType: false
+        -
+            identifier: missingType.iterableValue
