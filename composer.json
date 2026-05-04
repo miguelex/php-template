@@ -1,9 +1,16 @@
 {
-    "name": "miguelex/php-template",
-    "homepage": "https://github.com/miguelex/php-template",
+    "name": "your-vendor/your-project",
     "description": "PHP 8.2 MVC template with PHPStan, Pest, Gulp/Vite and AI agent support",
     "type": "project",
-    "keywords": ["php", "mvc", "template", "phpstan", "pest", "gulp", "vite", "boilerplate", "starter", "ai-agent"],
+    "keywords": [
+        "php",
+        "mvc",
+        "template",
+        "phpstan",
+        "pest",
+        "gulp",
+        "vite"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.2",
@@ -30,13 +37,13 @@
         }
     },
     "scripts": {
-        "lint":         "phpcs --standard=phpcs.xml src/",
-        "lint:fix":     "php-cs-fixer fix src/ --config=.php-cs-fixer.php",
-        "stan":         "phpstan analyse --configuration=phpstan.neon",
-        "test":         "phpunit --configuration=phpunit.xml",
-        "test:pest":    "pest",
-        "test:cover":   "phpunit --configuration=phpunit.xml --coverage-html storage/coverage",
-        "qa":           [
+        "lint": "phpcs --standard=phpcs.xml src/",
+        "lint:fix": "php-cs-fixer fix src/ --config=.php-cs-fixer.php",
+        "stan": "phpstan analyse --configuration=phpstan.neon",
+        "test": "./vendor/bin/phpunit --configuration=phpunit.xml",
+        "test:pest": "./vendor/bin/pest",
+        "test:cover": "./vendor/bin/phpunit --configuration=phpunit.xml --coverage-html storage/coverage",
+        "qa": [
             "@lint",
             "@stan",
             "@test"

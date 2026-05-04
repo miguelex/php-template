@@ -25,10 +25,11 @@ export default defineConfig({
             name: 'chromium',
             use: { ...devices['Desktop Chrome'] },
         },
-        {
-            name: 'firefox',
-            use: { ...devices['Desktop Firefox'] },
-        },
+        // Descomentar y instalar con: npx playwright install firefox
+        // {
+        //     name: 'firefox',
+        //     use: { ...devices['Desktop Firefox'] },
+        // },
         // Descomenta para mobile:
         // {
         //     name: 'Mobile Chrome',
