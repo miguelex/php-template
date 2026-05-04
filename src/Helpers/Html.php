@@ -28,7 +28,8 @@ final class Html
             return;
         }
 
-        echo '<pre style="background:#1e293b;color:#e2e8f0;padding:1rem;border-radius:6px;overflow:auto;font-size:0.875rem">';
+        echo '<pre style="background:#1e293b;color:#e2e8f0;padding:1rem;'
+            . 'border-radius:6px;overflow:auto;font-size:0.875rem">';
         var_dump($variable);
         echo '</pre>';
 
@@ -62,7 +63,8 @@ final class Html
 
             foreach ($messages as $message) {
                 $msg  = self::e($message);
-                $html .= "<div style='background:{$style};padding:.75rem 1rem;border-radius:6px;margin-bottom:.5rem'>{$msg}</div>";
+                $html .= "<div style='background:{$style};padding:.75rem 1rem;"
+                    . "border-radius:6px;margin-bottom:.5rem'>{$msg}</div>";
             }
         }
 

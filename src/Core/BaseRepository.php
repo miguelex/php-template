@@ -23,7 +23,8 @@ abstract class BaseRepository implements RepositoryInterface
 
     public function __construct(
         protected readonly PDO $db,
-    ) {}
+    ) {
+    }
 
     // ── RepositoryInterface ───────────────────────────────────────────────────
 
@@ -170,8 +171,8 @@ abstract class BaseRepository implements RepositoryInterface
         $stmt = $this->db->prepare(
             "SELECT * FROM {$this->table} ORDER BY {$orderBy} LIMIT :limit OFFSET :offset",
         );
-        $stmt->bindValue(':limit',  $perPage, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset,  PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
 
         $data = array_map(

@@ -57,7 +57,8 @@ final class EmailService
             <p>Hola <strong>{$name}</strong>,</p>
             <p>Has creado tu cuenta correctamente. Para activarla, haz clic en el botón:</p>
             <p style='text-align:center;margin:2rem 0'>
-                <a href='{$link}' style='background:#2563eb;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none'>
+                <a href='{$link}'
+                   style='background:#2563eb;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none'>
                     Confirmar cuenta
                 </a>
             </p>
@@ -80,7 +81,8 @@ final class EmailService
             <p>Hola <strong>{$name}</strong>,</p>
             <p>Has solicitado restablecer tu contraseña. Haz clic en el botón para continuar:</p>
             <p style='text-align:center;margin:2rem 0'>
-                <a href='{$link}' style='background:#2563eb;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none'>
+                <a href='{$link}'
+                   style='background:#2563eb;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none'>
                     Restablecer contraseña
                 </a>
             </p>
@@ -121,7 +123,8 @@ final class EmailService
             <title>{$title}</title>
         </head>
         <body style="font-family:system-ui,sans-serif;background:#f8fafc;margin:0;padding:2rem">
-            <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;padding:2rem;box-shadow:0 1px 3px rgba(0,0,0,.1)">
+            <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;
+                        padding:2rem;box-shadow:0 1px 3px rgba(0,0,0,.1)">
                 <h1 style="color:#1e293b;font-size:1.25rem;margin-bottom:1.5rem">{$title}</h1>
                 {$content}
                 <hr style="border:none;border-top:1px solid #e2e8f0;margin:2rem 0">

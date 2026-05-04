@@ -12,7 +12,9 @@ final class Database
 {
     private static ?PDO $instance = null;
 
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     public static function connect(): PDO
     {

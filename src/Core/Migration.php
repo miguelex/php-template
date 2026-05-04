@@ -26,7 +26,8 @@ abstract class Migration
 {
     public function __construct(
         protected readonly PDO $db,
-    ) {}
+    ) {
+    }
 
     abstract public function up(): void;
 

@@ -3,7 +3,7 @@
     "homepage": "https://github.com/miguelex/php-template",
     "description": "PHP 8.2 MVC template with PHPStan, Pest, Gulp/Vite and AI agent support",
     "type": "project",
-    "keywords": ["php", "mvc", "template", "phpstan", "pest", "gulp", "vite"],
+    "keywords": ["php", "mvc", "template", "phpstan", "pest", "gulp", "vite", "boilerplate", "starter", "ai-agent"],
     "license": "MIT",
     "require": {
         "php": "^8.2",

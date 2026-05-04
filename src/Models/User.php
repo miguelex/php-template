@@ -28,11 +28,11 @@ final class User extends ActiveRecord
         'id', 'name', 'email', 'password', 'token', 'confirmed', 'created_at',
     ];
 
-    public string $name      = '';
-    public string $email     = '';
-    public string $password  = '';
-    public string $token     = '';
-    public int    $confirmed = 0;
+    public string $name       = '';
+    public string $email      = '';
+    public string $password   = '';
+    public string $token      = '';
+    public int $confirmed     = 0;
     public string $created_at = '';
 
     // ── Validación ────────────────────────────────────────────────────────────
