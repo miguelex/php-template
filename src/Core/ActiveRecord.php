@@ -295,8 +295,8 @@ abstract class ActiveRecord
     /** @param array<string, mixed> $row */
     private static function fromArray(array $row): static
     {
-        /** @var static $obj */
-        $obj = new self();
+        /** @phpstan-ignore new.static */
+        $obj = new static();
         $obj->fill($row);
 
         return $obj;
