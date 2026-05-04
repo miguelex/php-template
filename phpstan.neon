@@ -8,7 +8,7 @@ parameters:
     treatPhpDocTypesAsCertain: false
 
     # Constantes definidas en runtime (public/index.php)
-    constants:
+    dynamicConstantNames:
         - BASE_PATH
 
     # Reglas extra recomendadas
