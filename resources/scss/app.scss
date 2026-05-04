@@ -1,0 +1,13 @@
+// resources/scss/app.scss
+// ─────────────────────────────────────────────
+// Punto de entrada principal de estilos.
+// Importar en orden: variables → mixins → base → componentes → utilidades
+
+@use 'variables';
+@use 'mixins';
+@use 'base';
+
+// Componentes (crear según necesidad)
+// @use 'components/button';
+// @use 'components/card';
+// @use 'components/form';

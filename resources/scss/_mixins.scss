@@ -1,0 +1,35 @@
+// resources/scss/_mixins.scss
+
+@use 'variables' as v;
+
+// Responsive breakpoints
+@mixin respond-to($breakpoint) {
+    @if $breakpoint == 'sm' {
+        @media (min-width: v.$bp-sm) { @content; }
+    } @else if $breakpoint == 'md' {
+        @media (min-width: v.$bp-md) { @content; }
+    } @else if $breakpoint == 'lg' {
+        @media (min-width: v.$bp-lg) { @content; }
+    } @else if $breakpoint == 'xl' {
+        @media (min-width: v.$bp-xl) { @content; }
+    }
+}
+
+// Flexbox centrado
+@mixin flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+// Truncar texto
+@mixin truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// Spacing utility (múltiplos de $spacing-unit)
+@mixin spacing($property, $multiplier) {
+    #{$property}: calc(v.$spacing-unit * #{$multiplier});
+}

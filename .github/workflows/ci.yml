@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # ── PHP: Lint + Stan + Tests ───────────────────────────────────────────────
+  php-qa:
+    name: PHP QA (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php: ['8.2', '8.3']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, xml, ctype, json, bcmath
+          coverage: xdebug
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ matrix.php }}-${{ hashFiles('composer.lock') }}
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run PHPCS (lint)
+        run: composer lint
+
+      - name: Run PHPStan (static analysis)
+        run: composer stan
+
+      - name: Run PHPUnit tests
+        run: composer test
+
+      - name: Run Pest tests
+        run: composer test:pest
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4
+        if: matrix.php == '8.2'
+        with:
+          files: storage/coverage/clover.xml
+          fail_ci_if_error: false
+
+  # ── Front: Lint + Vitest + Playwright ─────────────────────────────────────
+  front-qa:
+    name: Front QA
+    runs-on: ubuntu-latest
+    # Quitar si es proyecto backend-only
+    # if: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint JS
+        run: npm run lint:js
+
+      - name: Lint CSS
+        run: npm run lint:css
+
+      - name: Run Vitest (unit)
+        run: npm run test:cover
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Setup PHP for E2E server
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Install Composer deps for E2E
+        run: composer install --no-interaction --prefer-dist --no-dev
+
+      - name: Run Playwright E2E
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: storage/playwright-report/
+          retention-days: 7

@@ -1,0 +1,35 @@
+# Entorno
+.env
+.env.testing
+.env.testing
+
+# Dependencias
+/vendor/
+/node_modules/
+
+# Assets generados (Gulp)
+/public/assets/css/
+/public/assets/js/
+/public/assets/img/
+
+# Cache y cobertura
+/storage/cache/
+/storage/coverage/
+/storage/playwright-report/
+/.phpunit.cache/
+/.php-cs-fixer.cache
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+/storage/logs/*.log
+
+# Composer
+composer.phar
+# tasks/ is intentionally tracked (todo.md, lessons.md)

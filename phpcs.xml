@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<ruleset name="PHP Template Coding Standard">
+    <description>PSR-12 + extras para php-template</description>
+
+    <!-- Directorios a analizar -->
+    <file>src</file>
+    <file>tests</file>
+    <file>public/index.php</file>
+
+    <!-- Excluir vendor y generados -->
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/storage/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+
+    <!-- Estándar base PSR-12 -->
+    <rule ref="PSR12"/>
+
+    <!-- Extras -->
+    <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+    <rule ref="Generic.PHP.LowerCaseKeyword"/>
+    <rule ref="Generic.PHP.LowerCaseConstant"/>
+    <rule ref="Squiz.PHP.DisallowMultipleAssignments"/>
+    <rule ref="Squiz.WhiteSpace.SuperfluousWhitespace"/>
+
+    <!-- Longitud máxima de línea -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="120"/>
+            <property name="absoluteLineLimit" value="150"/>
+        </properties>
+    </rule>
+
+    <!-- PHP 8.2 mínimo -->
+    <config name="php_version" value="80200"/>
+</ruleset>

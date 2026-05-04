@@ -1,0 +1,59 @@
+// resources/scss/_base.scss
+
+@use 'variables' as v;
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 100%;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: v.$font-base;
+    font-size: v.$font-size-base;
+    line-height: v.$line-height-base;
+    color: v.$color-text;
+    background-color: v.$color-bg;
+    -webkit-font-smoothing: antialiased;
+}
+
+img,
+picture,
+video,
+canvas {
+    display: block;
+    max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+    font: inherit;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    overflow-wrap: break-word;
+}
+
+a {
+    color: v.$color-primary;
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}

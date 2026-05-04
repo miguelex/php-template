@@ -1,0 +1,261 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * bin/console — CLI de la aplicación
+ *
+ * Uso:
+ *   php bin/console migrate              → ejecutar migraciones pendientes
+ *   php bin/console migrate:rollback     → deshacer la última migración
+ *   php bin/console migrate:rollback 3   → deshacer las últimas 3
+ *   php bin/console migrate:fresh        → rollback completo + migrate
+ *   php bin/console migrate:status       → ver estado de migraciones
+ *   php bin/console make:migration nombre → crear nueva migración
+ *   php bin/console make:controller Nombre → crear controller vacío
+ *   php bin/console make:model Nombre    → crear modelo vacío
+ *   php bin/console make:repository Nombre → crear repositorio vacío
+ *   php bin/console cache:clear          → vaciar carpeta storage/cache
+ *   php bin/console routes               → listar rutas (TODO)
+ */
+
+define('BASE_PATH', dirname(__DIR__));
+
+require_once BASE_PATH . '/vendor/autoload.php';
+
+use App\Core\App;
+use App\Core\Database;
+use App\Core\Migrator;
+
+// ── Colores ───────────────────────────────────────────────────────────────────
+$green  = "\033[0;32m";
+$red    = "\033[0;31m";
+$yellow = "\033[1;33m";
+$cyan   = "\033[0;36m";
+$bold   = "\033[1m";
+$nc     = "\033[0m";
+
+function ok(string $msg): void    { global $green, $nc;  echo "{$green}✓{$nc}  {$msg}\n"; }
+function err(string $msg): void   { global $red, $nc;    echo "{$red}✗{$nc}  {$msg}\n"; }
+function info(string $msg): void  { global $cyan, $nc;   echo "{$cyan}»{$nc}  {$msg}\n"; }
+function warn(string $msg): void  { global $yellow, $nc; echo "{$yellow}!{$nc}  {$msg}\n"; }
+function title(string $msg): void { global $bold, $nc;   echo "\n{$bold}{$msg}{$nc}\n\n"; }
+
+// ── Bootstrap (sin BD para comandos make:*) ───────────────────────────────────
+$argv = $argv ?? [];
+$command = $argv[1] ?? 'help';
+$arg1    = $argv[2] ?? null;
+$arg2    = $argv[3] ?? null;
+
+// Cargar .env
+$dotenv = Dotenv\Dotenv::createImmutable(BASE_PATH);
+$dotenv->safeLoad();
+
+// ── Dispatch ──────────────────────────────────────────────────────────────────
+match (true) {
+    $command === 'migrate'                   => cmdMigrate(),
+    $command === 'migrate:rollback'          => cmdRollback((int)($arg1 ?? 1)),
+    $command === 'migrate:fresh'             => cmdFresh(),
+    $command === 'migrate:status'            => cmdStatus(),
+    str_starts_with($command, 'make:')       => cmdMake($command, $arg1),
+    $command === 'cache:clear'               => cmdCacheClear(),
+    $command === 'help', $command === '--help', $command === '-h' => cmdHelp(),
+    default                                  => unknownCommand($command),
+};
+
+// ── Comandos ──────────────────────────────────────────────────────────────────
+
+function cmdMigrate(): void
+{
+    title('Running migrations');
+    $migrator = makeMigrator();
+    $migrator->migrate();
+}
+
+function cmdRollback(int $steps): void
+{
+    title("Rolling back {$steps} migration(s)");
+    $migrator = makeMigrator();
+    $migrator->rollback($steps);
+}
+
+function cmdFresh(): void
+{
+    title('Fresh migration (rollback all + migrate)');
+    global $yellow;
+
+    echo "{$yellow}This will drop all tables. Are you sure? [y/N]{$nc} ";
+    $confirm = trim(fgets(STDIN) ?: '');
+
+    if (strtolower($confirm) !== 'y') {
+        warn('Aborted.');
+        exit(0);
+    }
+
+    $migrator = makeMigrator();
+    $migrator->fresh();
+}
+
+function cmdStatus(): void
+{
+    $migrator = makeMigrator();
+    $migrator->status();
+}
+
+function cmdMake(string $command, ?string $name): void
+{
+    if (!$name) {
+        err("Name is required. Example: php bin/console {$command} MyName");
+        exit(1);
+    }
+
+    match ($command) {
+        'make:migration'   => makeMigration($name),
+        'make:controller'  => makeStub('controller', $name),
+        'make:model'       => makeStub('model', $name),
+        'make:repository'  => makeStub('repository', $name),
+        default            => err("Unknown make command: {$command}"),
+    };
+}
+
+function makeMigration(string $name): void
+{
+    $timestamp = date('Y_m_d_His');
+    $slug      = strtolower(preg_replace('/[^a-zA-Z0-9]/', '_', $name) ?? $name);
+    $filename  = "{$timestamp}_{$slug}.php";
+    $class     = str_replace(' ', '', ucwords(str_replace('_', ' ', $slug)));
+    $path      = BASE_PATH . "/database/migrations/{$filename}";
+
+    $content = <<<PHP
+    <?php
+
+    declare(strict_types=1);
+
+    use App\Core\Migration;
+
+    class {$class} extends Migration
+    {
+        public function up(): void
+        {
+            \$this->execute("
+                -- SQL aquí
+            ");
+        }
+
+        public function down(): void
+        {
+            \$this->execute("-- DROP aquí");
+        }
+    }
+    PHP;
+
+    file_put_contents($path, $content);
+    ok("Migration created: database/migrations/{$filename}");
+}
+
+function makeStub(string $type, string $name): void
+{
+    $name = ucfirst($name);
+
+    [$dir, $namespace, $suffix, $extends] = match ($type) {
+        'controller' => ['src/Controllers', 'App\\Controllers', 'Controller', ''],
+        'model'      => ['src/Models',      'App\\Models',      '',           'extends ActiveRecord'],
+        'repository' => ['src/Repositories','App\\Repositories','Repository', 'extends BaseRepository'],
+    };
+
+    $className = $name . ($type !== 'model' ? ucfirst($type === 'repository' ? 'Repository' : 'Controller') : '');
+    $file      = BASE_PATH . "/{$dir}/{$className}.php";
+
+    if (file_exists($file)) {
+        err("{$className} already exists.");
+        exit(1);
+    }
+
+    $useStmt = match ($type) {
+        'model'      => "\nuse App\\Core\\ActiveRecord;\n",
+        'repository' => "\nuse App\\Core\\BaseRepository;\n",
+        default      => '',
+    };
+
+    $content = <<<PHP
+    <?php
+
+    declare(strict_types=1);
+
+    namespace {$namespace};
+    {$useStmt}
+    final class {$className} {$extends}
+    {
+        // TODO: implementar
+    }
+    PHP;
+
+    file_put_contents($file, $content);
+    ok("{$className} created: {$dir}/{$className}.php");
+}
+
+function cmdCacheClear(): void
+{
+    $path  = BASE_PATH . '/storage/cache';
+    $files = glob("{$path}/*") ?: [];
+    $count = 0;
+
+    foreach ($files as $file) {
+        if (is_file($file)) {
+            unlink($file);
+            $count++;
+        }
+    }
+
+    ok("Cache cleared ({$count} files removed).");
+}
+
+function cmdHelp(): void
+{
+    global $bold, $cyan, $nc;
+
+    echo <<<HELP
+
+    {$bold}php bin/console{$nc} — Comandos disponibles
+
+    {$bold}Migraciones:{$nc}
+      {$cyan}migrate{$nc}                   Ejecutar migraciones pendientes
+      {$cyan}migrate:rollback [n]{$nc}      Deshacer las últimas n migraciones (default: 1)
+      {$cyan}migrate:fresh{$nc}             Rollback completo + migrate
+      {$cyan}migrate:status{$nc}            Ver estado de todas las migraciones
+
+    {$bold}Generadores:{$nc}
+      {$cyan}make:migration <nombre>{$nc}   Crear nueva migración
+      {$cyan}make:controller <Nombre>{$nc}  Crear controller vacío
+      {$cyan}make:model <Nombre>{$nc}       Crear modelo vacío
+      {$cyan}make:repository <Nombre>{$nc}  Crear repositorio vacío
+
+    {$bold}Otros:{$nc}
+      {$cyan}cache:clear{$nc}               Vaciar storage/cache/
+      {$cyan}help{$nc}                      Mostrar esta ayuda
+
+    HELP;
+}
+
+function unknownCommand(string $command): void
+{
+    err("Unknown command: {$command}");
+    echo "  Run 'php bin/console help' for available commands.\n\n";
+    exit(1);
+}
+
+// ── Helper ────────────────────────────────────────────────────────────────────
+
+function makeMigrator(): Migrator
+{
+    try {
+        $pdo = Database::connect();
+    } catch (\Throwable $e) {
+        err('Cannot connect to database: ' . $e->getMessage());
+        err('Check your .env file (DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD)');
+        exit(1);
+    }
+
+    return new Migrator($pdo, BASE_PATH . '/database/migrations');
+}
