@@ -28,7 +28,10 @@ A modern PHP 8.2–8.5 MVC starter template with full tooling, testing, and AI a
 - **Router** — GET/POST/PUT/PATCH/DELETE, **route parameters `{id}`**, **global and per-route middleware**, `_method` override, 404/500 handling
 - **ActiveRecord** — lightweight PDO-based ORM with prepared statements, `find`, `where`, `save`, `delete`, validation, alerts and SQL identifier validation
 - **BaseRepository** — decoupled data access layer for complex domains, with `paginate`, `findWhere`, transactions
+- **Database** — multi-driver PDO: **MySQL, SQLite and PostgreSQL** (DSN from `DB_CONNECTION`)
 - **Migration system** — `up()`/`down()` migrations with state tracking and CLI runner
+- **Log** — PSR-3 logging via **Monolog** (`Log::info()`, `Log::error()`) to `storage/logs/`
+- **Whoops** — rich error pages in development
 - **EmailService** — SMTP via PHPMailer with (escaped) HTML templates
 - **Html helper** — safe escaping, CSRF (field or `X-CSRF-Token` header), alerts, debug dump
 - **Paginator** — pagination with HTML renderer
@@ -88,6 +91,8 @@ php bin/console cache:clear
 
 ### 🔄 CI/CD
 GitHub Actions with two parallel jobs: PHP QA (PHPStan + Rector + PHPCS + PHPUnit + Pest, PHP 8.2/8.3/8.4/8.5 matrix) and Front QA (ESLint + Stylelint + Vitest + Playwright).
+
+Plus: **Dependabot** (Composer + npm + Actions), **release-please** (automatic versioning + CHANGELOG + releases from Conventional Commits) and **architecture tests** (pest-arch). The database layer is tested for real with **in-memory SQLite**.
 
 ---
 
@@ -192,6 +197,10 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
+> **Multi-DB:** `DB_CONNECTION` accepts `mysql`, `sqlite` or `pgsql`. For SQLite just set
+> `DB_CONNECTION=sqlite` and `DB_DATABASE=storage/database.sqlite` (or `:memory:`), no host/credentials needed.
+> The ORM uses portable SQL; the migrations you write are engine-specific.
+
 ---
 
 ## Development
@@ -200,8 +209,8 @@ DB_PASSWORD=
 
 **Option 1 — `concurrently` (recommended on Windows/WSL)**
 ```bash
-npm run dev        # Gulp + PHP server in one terminal
-npm run dev:vite   # Vite + PHP server in one terminal
+npm run dev        # Vite + PHP server in one terminal (default)
+npm run dev:gulp   # Gulp + PHP server (alternative for vanilla JS)
 npm run php        # PHP server only (backend-only)
 ```
 
@@ -246,10 +255,10 @@ composer test:cover   # PHPUnit + HTML coverage at storage/coverage/
 
 ### Frontend (fullstack)
 ```bash
-npm run build          # Compile assets (dev)
-npm run build:prod     # Compile assets (production, minified)
-npm run build:vite     # Vite build (dev)
-npm run build:vite:prod # Vite build (production)
+npm run build          # Compile assets with Vite (dev, default)
+npm run build:prod     # Vite build (production, minified)
+npm run build:gulp     # Gulp build (dev)
+npm run build:gulp:prod # Gulp build (production)
 npm run test           # Vitest unit
 npm run test:watch     # Vitest watch mode
 npm run test:e2e       # Playwright E2E
@@ -295,13 +304,14 @@ php-template/
 ├── src/
 │   ├── Core/
 │   │   ├── App.php                ← Bootstrap
-│   │   ├── Router.php             ← MVC Router
+│   │   ├── Router.php             ← MVC Router (params + middleware)
 │   │   ├── ActiveRecord.php       ← PDO ORM base
 │   │   ├── BaseRepository.php     ← Repository base
 │   │   ├── RepositoryInterface.php
 │   │   ├── Migration.php          ← Migration base
 │   │   ├── Migrator.php           ← Migration runner
-│   │   └── Database.php           ← PDO singleton
+│   │   ├── Database.php           ← PDO (MySQL/SQLite/PostgreSQL)
+│   │   └── Log.php                ← PSR-3 logging (Monolog)
 │   ├── Controllers/
 │   ├── Models/
 │   │   └── User.php               ← Example model

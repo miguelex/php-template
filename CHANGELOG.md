@@ -1,0 +1,31 @@
+# Changelog
+
+Todas las versiones relevantes de este proyecto se documentan aquí.
+El formato sigue [Keep a Changelog](https://keepachangelog.com/) y el versionado
+es [SemVer](https://semver.org/). A partir de v2.1 este fichero lo mantiene
+automáticamente [release-please](https://github.com/googleapis/release-please).
+
+## [2.0.0] - 2026-10-24
+
+### Added
+- Router: parámetros de ruta (`/users/{id}`) y middleware por ruta encadenable.
+- Verificación CSRF también vía cabecera `X-CSRF-Token` (APIs/fetch).
+- Rector con set `php85` + sets de calidad (`composer rector` / `rector:fix`).
+- `.gitattributes` para forzar finales de línea LF.
+- Tests para el router y la validación de identificadores SQL.
+
+### Changed
+- Compatibilidad PHP 8.2 → 8.5; matriz de CI 8.2/8.3/8.4/8.5.
+- PHPStan 1 → 2 (nivel 6).
+- `composer.json` con nombre real `miguelex/php-template` (Packagist).
+
+### Fixed
+- `User`: `token`/`created_at` nullable para coincidir con el esquema (hidratación de `NULL`).
+- `EmailService`: escape del nombre y `urlencode` del token (HTML injection).
+- `Database`: guard de `APP_DEBUG` indefinido.
+
+### Security
+- Validación de identificadores y `ORDER BY` en `ActiveRecord` y `BaseRepository`.
+- `php_codesniffer` 3.13.6 (CVE-2026-67434).
+
+[2.0.0]: https://github.com/miguelex/php-template/releases/tag/v2.0.0

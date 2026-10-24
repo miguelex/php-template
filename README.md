@@ -28,6 +28,9 @@ Plantilla base para proyectos PHP 8.2–8.5 con arquitectura MVC, tooling modern
 - **Router** — rutas GET/POST/PUT/PATCH/DELETE, **parámetros `{id}`**, **middleware global y por ruta**, `_method` override, manejo de 404/500
 - **ActiveRecord** — ORM ligero sobre PDO con prepared statements, `find`, `where`, `save`, `delete`, validación, alertas y validación de identificadores SQL
 - **BaseRepository** — patrón Repository con paginación, transacciones y `findWhere`
+- **Database** — PDO multi-driver: **MySQL, SQLite y PostgreSQL** (DSN por `DB_CONNECTION`)
+- **Log** — logging PSR-3 con **Monolog** (`Log::info()`, `Log::error()`) a `storage/logs/`
+- **Whoops** — páginas de error enriquecidas en desarrollo
 - **EmailService** — envío SMTP vía PHPMailer con templates HTML base (con escape)
 - **Html helper** — escape seguro, CSRF (campo o cabecera `X-CSRF-Token`), alertas en vista, dump de debug
 
@@ -63,6 +66,8 @@ Ficheros `.agent/` leídos automáticamente por Claude Code, Cursor y similares:
 
 ### 🔄 CI/CD
 GitHub Actions con dos jobs paralelos: PHP QA (PHPStan + Rector + PHPCS + PHPUnit + Pest, matriz PHP 8.2/8.3/8.4/8.5) y Front QA (ESLint + Stylelint + Vitest + Playwright).
+
+Además: **Dependabot** (Composer + npm + Actions), **release-please** (versionado + CHANGELOG + release automáticos desde Conventional Commits) y **tests de arquitectura** (pest-arch). La base de datos se prueba de verdad con **SQLite en memoria**.
 
 ---
 
@@ -182,6 +187,10 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
+> **Multi-BD:** `DB_CONNECTION` acepta `mysql`, `sqlite` o `pgsql`. Para SQLite basta
+> `DB_CONNECTION=sqlite` y `DB_DATABASE=storage/database.sqlite` (o `:memory:`), sin host ni credenciales.
+> El ORM usa SQL portable; las migraciones que escribas sí son específicas de tu motor.
+
 ---
 
 ## Desarrollo
@@ -191,11 +200,11 @@ DB_PASSWORD=
 **Opción 1 — `concurrently` (recomendado en Windows/WSL sin tmux)**
 
 ```bash
-# Gulp + PHP server en una sola terminal
+# Vite + PHP server en una sola terminal (por defecto)
 npm run dev
 
-# Vite + PHP server en una sola terminal
-npm run dev:vite
+# Gulp + PHP server (alternativa para JS vanilla)
+npm run dev:gulp
 
 # Solo servidor PHP (backend-only)
 npm run php
@@ -231,12 +240,12 @@ npx vite
 
 ```bash
 # Desarrollo (sourcemaps, sin minificar)
-npm run build          # Gulp
-npm run build:vite     # Vite
+npm run build          # Vite (por defecto)
+npm run build:gulp     # Gulp
 
 # Producción (minificado, optimizado)
-npm run build:prod          # Gulp
-npm run build:vite:prod     # Vite
+npm run build:prod          # Vite (por defecto)
+npm run build:gulp:prod     # Gulp
 ```
 
 ---
@@ -285,9 +294,10 @@ php-template/
 ├── src/                           ← Código fuente PHP
 │   ├── Core/
 │   │   ├── App.php                ← Bootstrap (env, config, BD)
-│   │   ├── Router.php             ← Router MVC
+│   │   ├── Router.php             ← Router MVC (params + middleware)
 │   │   ├── ActiveRecord.php       ← ORM base con PDO
-│   │   └── Database.php           ← Conexión PDO (singleton)
+│   │   ├── Database.php           ← Conexión PDO (MySQL/SQLite/PostgreSQL)
+│   │   └── Log.php                ← Logging PSR-3 (Monolog)
 │   ├── Controllers/               ← HTTP handlers
 │   ├── Models/                    ← Entidades (extienden ActiveRecord)
 │   │   └── User.php               ← Modelo de ejemplo
@@ -344,6 +354,7 @@ php-template/
 │   ├── logs/
 │   └── cache/
 │
+├── CHANGELOG.md                   ← Mantenido por release-please
 ├── composer.json
 ├── phpstan.neon                   ← Nivel 6 (PHPStan 2.x)
 ├── rector.php                     ← Rector (set php85 + calidad)
