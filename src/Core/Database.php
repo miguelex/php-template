@@ -18,7 +18,7 @@ final class Database
 
     public static function connect(): PDO
     {
-        if (self::$instance !== null) {
+        if (self::$instance instanceof \PDO) {
             return self::$instance;
         }
 
@@ -42,7 +42,7 @@ final class Database
             self::$instance = new PDO($dsn, $username, $password, $options);
         } catch (PDOException $e) {
             // No exponer credenciales en producción
-            $message = $_ENV['APP_DEBUG'] === 'true'
+            $message = ($_ENV['APP_DEBUG'] ?? 'false') === 'true'
                 ? $e->getMessage()
                 : 'Database connection failed.';
 

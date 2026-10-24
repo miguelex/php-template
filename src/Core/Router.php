@@ -7,16 +7,31 @@ namespace App\Core;
 use App\Exceptions\RouteNotFoundException;
 
 /**
- * Router MVC sencillo.
+ * Router MVC sencillo con soporte de parámetros y middleware por ruta.
  *
- * Uso en public/index.php:
- *   $router->get('/ruta', [MiController::class, 'metodo']);
- *   $router->post('/ruta', [MiController::class, 'metodo']);
+ * Uso en config/routes.php:
+ *   $router->get('/', [HomeController::class, 'index']);
+ *   $router->get('/users/{id}', [UserController::class, 'show']);
+ *   $router->post('/posts', [PostController::class, 'store'])
+ *          ->middleware(AuthMiddleware::check(...));
  *   $router->dispatch();
+ *
+ * Los parámetros ({id}, {slug}, ...) se pasan al handler como segundo
+ * argumento asociativo:
+ *   public function show(Router $router, array $params): void {
+ *       $id = (int) $params['id'];
+ *   }
  */
 final class Router
 {
-    /** @var array<string, array<string, callable|array<int,string>>> */
+    /**
+     * @var array<string, list<array{
+     *     regex: string,
+     *     params: list<string>,
+     *     handler: callable|array<int,string>,
+     *     middleware: list<callable>
+     * }>>
+     */
     private array $routes = [
         'GET'    => [],
         'POST'   => [],
@@ -27,6 +42,10 @@ final class Router
 
     /** @var list<callable> */
     private array $middleware = [];
+
+    /** Referencia a la última ruta registrada, para ->middleware(). */
+    private ?string $lastMethod = null;
+    private ?int $lastIndex     = null;
 
     // ── Registro de rutas ────────────────────────────────────────────────────
 
@@ -60,11 +79,28 @@ final class Router
         return $this->addRoute('DELETE', $uri, $handler);
     }
 
-    // ── Middleware global ────────────────────────────────────────────────────
+    // ── Middleware ─────────────────────────────────────────────────────────────
 
+    /** Middleware global: se ejecuta en todas las rutas. */
     public function use(callable $middleware): self
     {
         $this->middleware[] = $middleware;
+
+        return $this;
+    }
+
+    /**
+     * Middleware para la última ruta registrada (encadenable).
+     *
+     *   $router->get('/admin', ...)->middleware(AuthMiddleware::check(...));
+     */
+    public function middleware(callable $middleware): self
+    {
+        if ($this->lastMethod === null || $this->lastIndex === null) {
+            throw new \LogicException('middleware() must be called after registering a route.');
+        }
+
+        $this->routes[$this->lastMethod][$this->lastIndex]['middleware'][] = $middleware;
 
         return $this;
     }
@@ -76,26 +112,28 @@ final class Router
         $method = $this->resolveMethod();
         $uri    = $this->resolveUri();
 
-        $handler = $this->routes[$method][$uri] ?? null;
+        foreach ($this->routes[$method] ?? [] as $route) {
+            if (preg_match($route['regex'], $uri, $matches) !== 1) {
+                continue;
+            }
 
-        if ($handler === null) {
-            throw new RouteNotFoundException(
-                "No route found for {$method} {$uri}",
-            );
+            // Asociar valores capturados con los nombres de parámetro.
+            $params = [];
+            foreach ($route['params'] as $i => $name) {
+                $params[$name] = $matches[$i + 1] ?? null;
+            }
+
+            // Middleware global + específico de la ruta.
+            foreach ([...$this->middleware, ...$route['middleware']] as $mw) {
+                $mw($this);
+            }
+
+            $this->callHandler($route['handler'], $params);
+
+            return;
         }
 
-        // Ejecutar middleware global
-        foreach ($this->middleware as $mw) {
-            $mw($this);
-        }
-
-        // Llamar al handler: closure o [Controller::class, 'method']
-        if (is_array($handler)) {
-            [$class, $methodName] = $handler;
-            (new $class())->$methodName($this);
-        } else {
-            $handler($this);
-        }
+        throw new RouteNotFoundException("No route found for {$method} {$uri}");
     }
 
     // ── Renderizado de vistas ─────────────────────────────────────────────────
@@ -143,9 +181,62 @@ final class Router
     /** @param callable|array<int,string> $handler */
     private function addRoute(string $method, string $uri, callable|array $handler): self
     {
-        $this->routes[$method][$uri] = $handler;
+        if ($uri !== '/') {
+            $uri = rtrim($uri, '/');
+        }
+
+        [$regex, $params] = $this->compile($uri);
+
+        $this->routes[$method][] = [
+            'regex'      => $regex,
+            'params'     => $params,
+            'handler'    => $handler,
+            'middleware' => [],
+        ];
+
+        $this->lastMethod = $method;
+        $this->lastIndex  = array_key_last($this->routes[$method]);
 
         return $this;
+    }
+
+    /**
+     * Compila una URI con placeholders ({id}) a una expresión regular.
+     *
+     * @return array{0: string, 1: list<string>}
+     */
+    private function compile(string $uri): array
+    {
+        $params   = [];
+        $segments = preg_split('/(\{[a-zA-Z_][a-zA-Z0-9_]*\})/', $uri, -1, PREG_SPLIT_DELIM_CAPTURE) ?: [$uri];
+        $regex    = '';
+
+        foreach ($segments as $segment) {
+            if (preg_match('/^\{([a-zA-Z_][a-zA-Z0-9_]*)\}$/', $segment, $m) === 1) {
+                $params[] = $m[1];
+                $regex   .= '([^/]+)';
+            } else {
+                $regex .= preg_quote($segment, '#');
+            }
+        }
+
+        return ['#^' . $regex . '$#', $params];
+    }
+
+    /**
+     * @param callable|array<int,string> $handler
+     * @param array<string, string|null> $params
+     */
+    private function callHandler(callable|array $handler, array $params): void
+    {
+        if (is_array($handler)) {
+            [$class, $methodName] = $handler;
+            (new $class())->$methodName($this, $params);
+
+            return;
+        }
+
+        $handler($this, $params);
     }
 
     private function resolveMethod(): string
@@ -172,7 +263,7 @@ final class Router
 
         // Normalizar trailing slash (salvo raíz)
         if ($uri !== '/') {
-            $uri = rtrim($uri, '/');
+            return rtrim($uri, '/');
         }
 
         return $uri;

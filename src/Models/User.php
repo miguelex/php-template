@@ -28,33 +28,34 @@ final class User extends ActiveRecord
         'id', 'name', 'email', 'password', 'token', 'confirmed', 'created_at',
     ];
 
-    public string $name       = '';
-    public string $email      = '';
-    public string $password   = '';
-    public string $token      = '';
-    public int $confirmed     = 0;
-    public string $created_at = '';
+    public string $name        = '';
+    public string $email       = '';
+    public string $password    = '';
+    public ?string $token      = null;
+    public int $confirmed      = 0;
+    public ?string $created_at = null;
 
     // ── Validación ────────────────────────────────────────────────────────────
 
     /** @return array<string, list<string>> */
+    #[\Override]
     public function validate(): array
     {
-        static::clearAlerts();
+        self::clearAlerts();
 
         if (empty($this->name)) {
-            static::addAlert('error', 'El nombre es obligatorio.');
+            self::addAlert('error', 'El nombre es obligatorio.');
         }
 
         if (empty($this->email) || !filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
-            static::addAlert('error', 'El email no es válido.');
+            self::addAlert('error', 'El email no es válido.');
         }
 
         if (strlen($this->password) < 8) {
-            static::addAlert('error', 'La contraseña debe tener al menos 8 caracteres.');
+            self::addAlert('error', 'La contraseña debe tener al menos 8 caracteres.');
         }
 
-        return static::getAlerts();
+        return self::getAlerts();
     }
 
     // ── Métodos específicos ───────────────────────────────────────────────────

@@ -1,31 +1,43 @@
 # php-template
 
-A modern PHP 8.2 MVC starter template with full tooling, testing, and AI agent support.
+A modern PHP 8.2–8.5 MVC starter template with full tooling, testing, and AI agent support.
 
 [![CI](https://github.com/miguelex/php-template/actions/workflows/ci.yml/badge.svg)](https://github.com/miguelex/php-template/actions)
-[![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php)](https://php.net)
+[![PHP](https://img.shields.io/badge/PHP-8.2%20–%208.5-777BB4?logo=php)](https://php.net)
+[![Packagist](https://img.shields.io/packagist/v/miguelex/php-template?logo=packagist)](https://packagist.org/packages/miguelex/php-template)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 > 🇪🇸 [Versión en español / Spanish README](README.md)
 
-> 📖 [Versión en español / Spanish README](README.md)
+---
+
+## What's new in v2.0
+
+- 🐘 **PHP 8.2 → 8.5 support** — CI tested on 8.2, 8.3, 8.4 and 8.5.
+- 🔧 **Rector** with the `php85` set + quality sets (`composer rector` / `rector:fix`) to modernize code and catch deprecations.
+- 🧭 **Route parameters** (`/users/{id}`) and **chainable per-route middleware**.
+- 🛡 **SQL hardening** — identifier/`ORDER BY` validation in `ActiveRecord` and `BaseRepository` (values were already parameterized).
+- 🔐 **CSRF** via `X-CSRF-Token` header too (APIs/fetch), escaped emails, and a fix for hydrating `NULL` columns.
+- 📈 **PHPStan 2.x** and `.gitattributes` (forced LF — no more false lint failures on Windows).
+- 📦 Published on **Packagist**: `composer create-project miguelex/php-template my-project`.
 
 ---
 
 ## What's included?
 
 ### 🏗 MVC Architecture
-- **Router** — GET/POST/PUT/PATCH/DELETE, `_method` override for HTML forms, global middleware, 404/500 handling
-- **ActiveRecord** — lightweight PDO-based ORM with prepared statements, `find`, `where`, `save`, `delete`, validation, alerts
+- **Router** — GET/POST/PUT/PATCH/DELETE, **route parameters `{id}`**, **global and per-route middleware**, `_method` override, 404/500 handling
+- **ActiveRecord** — lightweight PDO-based ORM with prepared statements, `find`, `where`, `save`, `delete`, validation, alerts and SQL identifier validation
 - **BaseRepository** — decoupled data access layer for complex domains, with `paginate`, `findWhere`, transactions
 - **Migration system** — `up()`/`down()` migrations with state tracking and CLI runner
-- **EmailService** — SMTP via PHPMailer with HTML templates
-- **Html helper** — safe escaping, CSRF, alerts, debug dump
+- **EmailService** — SMTP via PHPMailer with (escaped) HTML templates
+- **Html helper** — safe escaping, CSRF (field or `X-CSRF-Token` header), alerts, debug dump
 - **Paginator** — pagination with HTML renderer
 - **JsonResponse** — structured JSON responses for API mode
 - **AuthMiddleware** — session-based auth with `check()`, `require()`, `guest()`, session fixation protection
 
 ### ✅ PHP Code Quality
-- **PHPStan** level 6 — static analysis
+- **PHPStan 2.x** level 6 — static analysis
+- **Rector** — automatic modernization and version readiness (`php85` set)
 - **PHP_CodeSniffer** — PSR-12
 - **PHP-CS-Fixer** — auto style correction
 - **PHPUnit 11** + **Pest 3** — unit, integration and feature tests
@@ -75,7 +87,7 @@ php bin/console cache:clear
 ```
 
 ### 🔄 CI/CD
-GitHub Actions with two parallel jobs: PHP QA (PHPStan + PHPCS + PHPUnit + Pest) and Front QA (ESLint + Stylelint + Vitest + Playwright).
+GitHub Actions with two parallel jobs: PHP QA (PHPStan + Rector + PHPCS + PHPUnit + Pest, PHP 8.2/8.3/8.4/8.5 matrix) and Front QA (ESLint + Stylelint + Vitest + Playwright).
 
 ---
 
@@ -83,7 +95,7 @@ GitHub Actions with two parallel jobs: PHP QA (PHPStan + PHPCS + PHPUnit + Pest)
 
 | Tool | Min version | Notes |
 |---|---|---|
-| PHP | 8.2 | `php --version` |
+| PHP | 8.2 (supports up to 8.5) | `php --version` |
 | Composer | 2.x | `composer --version` |
 | Node.js | 20 LTS | fullstack mode only |
 | npm | 10+ | fullstack mode only |
@@ -119,7 +131,16 @@ sudo apt install php8.2 php8.2-mbstring php8.2-xml php8.2-curl
 
 ## Create a new project
 
-### Option A — Clone and use `init-project.sh`
+### Option A — Composer create-project (fastest)
+
+```bash
+composer create-project miguelex/php-template my-project
+cd my-project
+```
+
+Pulls the latest stable release from Packagist without the template's git history. Then adjust the `name` in `composer.json` and init your own repo.
+
+### Option B — Clone and use `init-project.sh`
 
 ```bash
 git clone https://github.com/miguelex/php-template.git
@@ -135,13 +156,6 @@ Or pass arguments directly:
 ```bash
 ./init-project.sh my-api      backend   # PHP API, no frontend
 ./init-project.sh my-website  full      # Full website with assets
-```
-
-### Option B — Composer create-project
-
-```bash
-composer create-project your-vendor/php-template my-project
-cd my-project
 ```
 
 ### Option C — GitHub fork
@@ -223,6 +237,8 @@ composer qa           # Everything: lint + stan + tests
 composer lint         # PHPCS — detect style issues
 composer lint:fix     # PHP-CS-Fixer — auto-fix style
 composer stan         # PHPStan — static analysis level 6
+composer rector       # Rector — show proposed modernizations (dry-run)
+composer rector:fix   # Rector — apply modernizations
 composer test         # PHPUnit
 composer test:pest    # Pest
 composer test:cover   # PHPUnit + HTML coverage at storage/coverage/
@@ -308,6 +324,8 @@ php-template/
 │   └── home.php
 │
 ├── config/routes.php
+├── rector.php                     ← Rector config (php85 + quality)
+├── .gitattributes                 ← Forces LF line endings
 ├── public/index.php               ← Entry point
 ├── resources/                     ← Frontend sources (fullstack)
 ├── tests/                         ← PHP + JS + E2E
@@ -318,6 +336,30 @@ php-template/
 ├── Makefile
 ├── dev.sh                         ← tmux launcher
 └── init-project.sh                ← Project scaffolding script
+```
+
+---
+
+## Routing and middleware
+
+```php
+// config/routes.php
+
+// Simple route
+$router->get('/', [HomeController::class, 'index']);
+
+// Route parameters → passed as the handler's 2nd associative argument
+$router->get('/users/{id}', function (Router $router, array $params): void {
+    $id = (int) $params['id'];
+    // ...
+});
+
+// Per-route middleware (chainable)
+$router->get('/dashboard', [DashboardController::class, 'index'])
+       ->middleware(App\Middleware\AuthMiddleware::check(...));
+
+// Global middleware (all routes)
+$router->use(App\Middleware\AuthMiddleware::check(...));
 ```
 
 ---

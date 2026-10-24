@@ -53,7 +53,7 @@ abstract class ActiveRecord
 
     protected static function db(): PDO
     {
-        if (self::$db === null) {
+        if (!self::$db instanceof \PDO) {
             throw new DatabaseException('No database connection set. Call ActiveRecord::setDB($pdo) first.');
         }
 
@@ -130,8 +130,9 @@ abstract class ActiveRecord
     /** @return list<static> */
     public static function all(string $orderBy = 'id DESC'): array
     {
-        $table = static::$table;
-        $stmt  = self::db()->prepare("SELECT * FROM {$table} ORDER BY {$orderBy}");
+        $table   = static::$table;
+        $orderBy = static::assertOrderBy($orderBy);
+        $stmt    = self::db()->prepare("SELECT * FROM {$table} ORDER BY {$orderBy}");
         $stmt->execute();
 
         return self::hydrate($stmt);
@@ -153,8 +154,9 @@ abstract class ActiveRecord
      */
     public static function where(string $column, mixed $value): array
     {
-        $table = static::$table;
-        $stmt  = self::db()->prepare("SELECT * FROM {$table} WHERE {$column} = :value");
+        $table  = static::$table;
+        $column = static::assertColumn($column);
+        $stmt   = self::db()->prepare("SELECT * FROM {$table} WHERE {$column} = :value");
         $stmt->execute([':value' => $value]);
 
         return self::hydrate($stmt);
@@ -178,7 +180,8 @@ abstract class ActiveRecord
         $params = [];
 
         foreach ($conditions as $column => $value) {
-            $wheres[]           = "{$column} = :{$column}";
+            $column               = static::assertColumn($column);
+            $wheres[]             = "{$column} = :{$column}";
             $params[":{$column}"] = $value;
         }
 
@@ -192,8 +195,9 @@ abstract class ActiveRecord
     /** @return list<static> */
     public static function limit(int $n, string $orderBy = 'id DESC'): array
     {
-        $table = static::$table;
-        $stmt  = self::db()->prepare("SELECT * FROM {$table} ORDER BY {$orderBy} LIMIT :limit");
+        $table   = static::$table;
+        $orderBy = static::assertOrderBy($orderBy);
+        $stmt    = self::db()->prepare("SELECT * FROM {$table} ORDER BY {$orderBy} LIMIT :limit");
         $stmt->bindValue(':limit', $n, PDO::PARAM_INT);
         $stmt->execute();
 
@@ -209,13 +213,51 @@ abstract class ActiveRecord
         return (int) $stmt->fetchColumn();
     }
 
+    // ── Validación de identificadores SQL ──────────────────────────────────────
+
+    /**
+     * Valida un nombre de columna contra la whitelist del modelo y el formato.
+     * Evita inyección SQL vía identificadores (que no pueden parametrizarse).
+     */
+    protected static function assertColumn(string $column): string
+    {
+        if (static::$columns !== [] && !in_array($column, static::$columns, true)) {
+            throw new DatabaseException(
+                "Unknown column '{$column}' for " . static::class . '.',
+            );
+        }
+
+        if (preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $column) !== 1) {
+            throw new DatabaseException("Invalid column name '{$column}'.");
+        }
+
+        return $column;
+    }
+
+    /**
+     * Valida una cláusula ORDER BY. Acepta "col", "col ASC", "col DESC"
+     * y listas separadas por comas.
+     */
+    protected static function assertOrderBy(string $orderBy): string
+    {
+        foreach (explode(',', $orderBy) as $part) {
+            $part = trim($part);
+
+            if (preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*(\s+(ASC|DESC))?$/i', $part) !== 1) {
+                throw new DatabaseException("Invalid ORDER BY clause '{$orderBy}'.");
+            }
+        }
+
+        return $orderBy;
+    }
+
     // ── Privados ──────────────────────────────────────────────────────────────
 
     private function insert(): bool
     {
         $attrs   = $this->getAttributes();
         $columns = implode(', ', array_keys($attrs));
-        $placeholders = implode(', ', array_map(fn($k) => ":{$k}", array_keys($attrs)));
+        $placeholders = implode(', ', array_map(fn(string $k): string => ":{$k}", array_keys($attrs)));
 
         $table = static::$table;
         $stmt  = self::db()->prepare(
@@ -234,7 +276,7 @@ abstract class ActiveRecord
     private function update(): bool
     {
         $attrs  = $this->getAttributes();
-        $sets   = implode(', ', array_map(fn($k) => "{$k} = :{$k}", array_keys($attrs)));
+        $sets   = implode(', ', array_map(fn(string $k): string => "{$k} = :{$k}", array_keys($attrs)));
         $params = $this->prefixKeys($attrs);
         $params[':id'] = $this->id;
 

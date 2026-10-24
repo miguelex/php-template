@@ -12,13 +12,13 @@ use PDO;
  *
  * Usado desde bin/console (migrate, rollback, status).
  */
-final class Migrator
+final readonly class Migrator
 {
     private const TABLE = 'migrations';
 
     public function __construct(
-        private readonly PDO $db,
-        private readonly string $migrationsPath,
+        private PDO $db,
+        private string $migrationsPath,
     ) {
         $this->ensureMigrationsTable();
     }
@@ -29,7 +29,7 @@ final class Migrator
     {
         $pending = $this->getPending();
 
-        if (empty($pending)) {
+        if ($pending === []) {
             echo "  Nothing to migrate.\n";
 
             return;
@@ -44,7 +44,7 @@ final class Migrator
     {
         $ran = $this->getRan();
 
-        if (empty($ran)) {
+        if ($ran === []) {
             echo "  Nothing to rollback.\n";
 
             return;
@@ -146,7 +146,7 @@ final class Migrator
     {
         $files = glob($this->migrationsPath . '/*.php') ?: [];
 
-        return array_map('basename', $files);
+        return array_map(basename(...), $files);
     }
 
     private function classNameFromFile(string $file): string

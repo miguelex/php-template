@@ -1,12 +1,13 @@
 {
-    "name": "your-vendor/your-project",
-    "description": "PHP 8.2 MVC template with PHPStan, Pest, Gulp/Vite and AI agent support",
+    "name": "miguelex/php-template",
+    "description": "PHP 8.2–8.5 MVC template with PHPStan, Rector, Pest, Gulp/Vite and AI agent support",
     "type": "project",
     "keywords": [
         "php",
         "mvc",
         "template",
         "phpstan",
+        "rector",
         "pest",
         "gulp",
         "vite"
@@ -21,7 +22,8 @@
         "phpunit/phpunit": "^11.0",
         "pestphp/pest": "^3.0",
         "pestphp/pest-plugin-arch": "^3.0",
-        "phpstan/phpstan": "^1.12",
+        "phpstan/phpstan": "^2.1",
+        "rector/rector": "^2.0",
         "squizlabs/php_codesniffer": "^3.10",
         "friendsofphp/php-cs-fixer": "^3.64",
         "fakerphp/faker": "^1.23"
@@ -40,6 +42,8 @@
         "lint": "phpcs --standard=phpcs.xml src/",
         "lint:fix": "php-cs-fixer fix src/ --config=.php-cs-fixer.php",
         "stan": "phpstan analyse --configuration=phpstan.neon",
+        "rector": "rector process --dry-run",
+        "rector:fix": "rector process",
         "test": "./vendor/bin/phpunit --configuration=phpunit.xml",
         "test:pest": "./vendor/bin/pest",
         "test:cover": "./vendor/bin/phpunit --configuration=phpunit.xml --coverage-html storage/coverage",

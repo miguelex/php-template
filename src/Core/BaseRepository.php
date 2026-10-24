@@ -49,7 +49,7 @@ abstract class BaseRepository implements RepositoryInterface
         $stmt->execute();
 
         return array_map(
-            fn(array $row) => $this->hydrate($row),
+            $this->hydrate(...),
             $stmt->fetchAll(PDO::FETCH_ASSOC),
         );
     }
@@ -58,7 +58,7 @@ abstract class BaseRepository implements RepositoryInterface
     {
         $data = $this->extract($entity);
 
-        if (isset($data['id']) && $data['id'] !== null) {
+        if (isset($data['id'])) {
             return $this->update($data);
         }
 
@@ -81,20 +81,22 @@ abstract class BaseRepository implements RepositoryInterface
      */
     public function findBy(string $column, mixed $value): array
     {
-        $stmt = $this->db->prepare(
+        $column = $this->assertColumn($column);
+        $stmt   = $this->db->prepare(
             "SELECT * FROM {$this->table} WHERE {$column} = :value",
         );
         $stmt->execute([':value' => $value]);
 
         return array_map(
-            fn(array $row) => $this->hydrate($row),
+            $this->hydrate(...),
             $stmt->fetchAll(PDO::FETCH_ASSOC),
         );
     }
 
     public function findOneBy(string $column, mixed $value): ?object
     {
-        $stmt = $this->db->prepare(
+        $column = $this->assertColumn($column);
+        $stmt   = $this->db->prepare(
             "SELECT * FROM {$this->table} WHERE {$column} = :value LIMIT 1",
         );
         $stmt->execute([':value' => $value]);
@@ -114,17 +116,18 @@ abstract class BaseRepository implements RepositoryInterface
         $params = [];
 
         foreach ($criteria as $column => $value) {
+            $column               = $this->assertColumn($column);
             $wheres[]             = "{$column} = :{$column}";
             $params[":{$column}"] = $value;
         }
 
         $sql = "SELECT * FROM {$this->table}";
 
-        if (!empty($wheres)) {
+        if ($wheres !== []) {
             $sql .= ' WHERE ' . implode(' AND ', $wheres);
         }
 
-        $sql .= " ORDER BY {$orderBy}";
+        $sql .= ' ORDER BY ' . $this->assertOrderBy($orderBy);
 
         if ($limit !== null) {
             $sql .= " LIMIT {$limit}";
@@ -134,7 +137,7 @@ abstract class BaseRepository implements RepositoryInterface
         $stmt->execute($params);
 
         return array_map(
-            fn(array $row) => $this->hydrate($row),
+            $this->hydrate(...),
             $stmt->fetchAll(PDO::FETCH_ASSOC),
         );
     }
@@ -164,9 +167,10 @@ abstract class BaseRepository implements RepositoryInterface
      */
     public function paginate(int $page = 1, int $perPage = 15, string $orderBy = 'id DESC'): array
     {
-        $page   = max(1, $page);
-        $offset = ($page - 1) * $perPage;
-        $total  = $this->count();
+        $page    = max(1, $page);
+        $offset  = ($page - 1) * $perPage;
+        $total   = $this->count();
+        $orderBy = $this->assertOrderBy($orderBy);
 
         $stmt = $this->db->prepare(
             "SELECT * FROM {$this->table} ORDER BY {$orderBy} LIMIT :limit OFFSET :offset",
@@ -176,7 +180,7 @@ abstract class BaseRepository implements RepositoryInterface
         $stmt->execute();
 
         $data = array_map(
-            fn(array $row) => $this->hydrate($row),
+            $this->hydrate(...),
             $stmt->fetchAll(PDO::FETCH_ASSOC),
         );
 
@@ -223,6 +227,35 @@ abstract class BaseRepository implements RepositoryInterface
      */
     abstract protected function extract(object $entity): array;
 
+    // ── Validación de identificadores SQL ──────────────────────────────────────
+
+    /**
+     * Valida el formato de un nombre de columna para evitar inyección SQL
+     * vía identificadores (no parametrizables por PDO).
+     */
+    protected function assertColumn(string $column): string
+    {
+        if (preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $column) !== 1) {
+            throw new \InvalidArgumentException("Invalid column name '{$column}'.");
+        }
+
+        return $column;
+    }
+
+    /** Valida una cláusula ORDER BY ("col", "col ASC", "a ASC, b DESC"). */
+    protected function assertOrderBy(string $orderBy): string
+    {
+        foreach (explode(',', $orderBy) as $part) {
+            $part = trim($part);
+
+            if (preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*(\s+(ASC|DESC))?$/i', $part) !== 1) {
+                throw new \InvalidArgumentException("Invalid ORDER BY clause '{$orderBy}'.");
+            }
+        }
+
+        return $orderBy;
+    }
+
     // ── Privados ──────────────────────────────────────────────────────────────
 
     /** @param array<string, mixed> $data */
@@ -231,7 +264,7 @@ abstract class BaseRepository implements RepositoryInterface
         unset($data['id']);
 
         $columns      = implode(', ', array_keys($data));
-        $placeholders = implode(', ', array_map(fn($k) => ":{$k}", array_keys($data)));
+        $placeholders = implode(', ', array_map(fn(string $k): string => ":{$k}", array_keys($data)));
 
         $stmt = $this->db->prepare(
             "INSERT INTO {$this->table} ({$columns}) VALUES ({$placeholders})",
@@ -257,7 +290,7 @@ abstract class BaseRepository implements RepositoryInterface
         $id = $data['id'];
         unset($data['id']);
 
-        $sets   = implode(', ', array_map(fn($k) => "{$k} = :{$k}", array_keys($data)));
+        $sets   = implode(', ', array_map(fn(string $k): string => "{$k} = :{$k}", array_keys($data)));
         $params = [':id' => $id];
 
         foreach ($data as $k => $v) {

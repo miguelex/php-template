@@ -8,7 +8,6 @@ parameters:
         - phpstan-bootstrap.php
     reportUnmatchedIgnoredErrors: false
     treatPhpDocTypesAsCertain: false
-    checkGenericClassInNonGenericObjectType: true
     checkUninitializedProperties: true
     ignoreErrors:
         -

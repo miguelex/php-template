@@ -45,7 +45,7 @@ final class Html
      */
     public static function alerts(array $alerts): string
     {
-        if (empty($alerts)) {
+        if ($alerts === []) {
             return '';
         }
 
@@ -98,10 +98,13 @@ final class Html
             session_start();
         }
 
-        $token    = $_POST['_csrf_token'] ?? '';
+        // Acepta el token vía campo de formulario o cabecera (APIs JSON/fetch).
+        $token    = $_POST['_csrf_token']
+            ?? $_SERVER['HTTP_X_CSRF_TOKEN']
+            ?? '';
         $expected = $_SESSION['_csrf_token'] ?? '';
 
-        if (!hash_equals($expected, $token)) {
+        if ($expected === '' || !hash_equals($expected, (string) $token)) {
             http_response_code(419);
 
             throw new \RuntimeException('CSRF token mismatch.');

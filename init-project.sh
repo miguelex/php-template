@@ -109,7 +109,7 @@ VENDOR_NAME=$(echo "$PROJECT_NAME" | sed 's/-[^-]*$//' | sed 's/-//g')
 [[ -z "$VENDOR_NAME" ]] && VENDOR_NAME="vendor"
 
 # composer.json
-sed -i "s/your-vendor\/your-project/$VENDOR_NAME\/$PROJECT_NAME/g" composer.json
+sed -i "s#miguelex/php-template#$VENDOR_NAME/$PROJECT_NAME#g" composer.json
 sed -i "s/Project description/$PROJECT_NAME/g" composer.json
 
 # package.json (solo fullstack)

@@ -18,19 +18,19 @@ namespace App\Helpers;
  *   $result = $repo->paginate(page: $page, perPage: 15);
  *   $paginator = Paginator::fromArray($result);
  */
-final class Paginator
+final readonly class Paginator
 {
-    public readonly int $lastPage;
-    public readonly int $offset;
-    public readonly bool $hasPages;
-    public readonly bool $hasPrevious;
-    public readonly bool $hasNext;
+    public int $lastPage;
+    public int $offset;
+    public bool $hasPages;
+    public bool $hasPrevious;
+    public bool $hasNext;
 
     public function __construct(
-        public readonly int $total,
-        public readonly int $perPage,
-        public readonly int $currentPage,
-        public readonly string $urlPattern = '?page={page}',
+        public int $total,
+        public int $perPage,
+        public int $currentPage,
+        public string $urlPattern = '?page={page}',
     ) {
         $this->lastPage   = max(1, (int) ceil($total / $perPage));
         $this->offset     = ($currentPage - 1) * $perPage;

@@ -14,7 +14,7 @@ use PHPMailer\PHPMailer\Exception as MailerException;
  *   MAIL_HOST, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD
  *   MAIL_FROM_ADDRESS, MAIL_FROM_NAME, APP_URL
  */
-final class EmailService
+final readonly class EmailService
 {
     private PHPMailer $mailer;
 
@@ -49,12 +49,13 @@ final class EmailService
         string $name,
         string $token,
     ): bool {
-        $url  = rtrim($_ENV['APP_URL'] ?? '', '/');
-        $link = "{$url}/confirmar-cuenta?token={$token}";
+        $url     = rtrim($_ENV['APP_URL'] ?? '', '/');
+        $link    = "{$url}/confirmar-cuenta?token=" . urlencode($token);
         $appName = $_ENV['APP_NAME'] ?? 'App';
+        $safeName = htmlspecialchars($name, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
         $body = $this->template("Confirma tu cuenta en {$appName}", "
-            <p>Hola <strong>{$name}</strong>,</p>
+            <p>Hola <strong>{$safeName}</strong>,</p>
             <p>Has creado tu cuenta correctamente. Para activarla, haz clic en el botón:</p>
             <p style='text-align:center;margin:2rem 0'>
                 <a href='{$link}'
@@ -73,12 +74,12 @@ final class EmailService
         string $name,
         string $token,
     ): bool {
-        $url  = rtrim($_ENV['APP_URL'] ?? '', '/');
-        $link = "{$url}/reestablecer?token={$token}";
-        $appName = $_ENV['APP_NAME'] ?? 'App';
+        $url     = rtrim($_ENV['APP_URL'] ?? '', '/');
+        $link    = "{$url}/reestablecer?token=" . urlencode($token);
+        $safeName = htmlspecialchars($name, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
         $body = $this->template('Reestablece tu contraseña', "
-            <p>Hola <strong>{$name}</strong>,</p>
+            <p>Hola <strong>{$safeName}</strong>,</p>
             <p>Has solicitado restablecer tu contraseña. Haz clic en el botón para continuar:</p>
             <p style='text-align:center;margin:2rem 0'>
                 <a href='{$link}'

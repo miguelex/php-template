@@ -1,24 +1,39 @@
 # php-template
 
-Plantilla base para proyectos PHP 8.2 con arquitectura MVC, tooling moderno y soporte para desarrollo con agentes IA.
+Plantilla base para proyectos PHP 8.2–8.5 con arquitectura MVC, tooling moderno y soporte para desarrollo con agentes IA.
 
 [![CI](https://github.com/miguelex/php-template/actions/workflows/ci.yml/badge.svg)](https://github.com/miguelex/php-template/actions)
-[![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php)](https://php.net)
+[![PHP](https://img.shields.io/badge/PHP-8.2%20–%208.5-777BB4?logo=php)](https://php.net)
+[![Packagist](https://img.shields.io/packagist/v/miguelex/php-template?logo=packagist)](https://packagist.org/packages/miguelex/php-template)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 > 🇬🇧 [English README](README.en.md)
+
+---
+
+## Novedades v2.0
+
+- 🐘 **Compatibilidad PHP 8.2 → 8.5** — CI probado en 8.2, 8.3, 8.4 y 8.5.
+- 🔧 **Rector** con set `php85` + sets de calidad (`composer rector` / `rector:fix`) para modernizar y detectar deprecaciones.
+- 🧭 **Router con parámetros de ruta** (`/users/{id}`) y **middleware por ruta** encadenable.
+- 🛡 **Blindaje SQL** — validación de identificadores/`ORDER BY` en `ActiveRecord` y `BaseRepository` (los valores ya iban parametrizados).
+- 🔐 **CSRF** también vía cabecera `X-CSRF-Token` (APIs/fetch), escape de emails y fix de hidratación de columnas `NULL`.
+- 📈 **PHPStan 2.x** y `.gitattributes` (LF forzado, fin de los falsos fallos de lint en Windows).
+- 📦 Publicado en **Packagist**: `composer create-project miguelex/php-template mi-proyecto`.
 
 ---
 
 ## ¿Qué incluye?
 
 ### 🏗 Arquitectura MVC
-- **Router** — registro de rutas GET/POST/PUT/PATCH/DELETE, soporte `_method` override, middleware global, manejo de 404/500
-- **ActiveRecord** — ORM ligero sobre PDO con prepared statements, `find`, `where`, `save`, `delete`, validación, alertas
-- **EmailService** — envío SMTP vía PHPMailer con templates HTML base
-- **Html helper** — escape seguro, CSRF, alertas en vista, dump de debug
+- **Router** — rutas GET/POST/PUT/PATCH/DELETE, **parámetros `{id}`**, **middleware global y por ruta**, `_method` override, manejo de 404/500
+- **ActiveRecord** — ORM ligero sobre PDO con prepared statements, `find`, `where`, `save`, `delete`, validación, alertas y validación de identificadores SQL
+- **BaseRepository** — patrón Repository con paginación, transacciones y `findWhere`
+- **EmailService** — envío SMTP vía PHPMailer con templates HTML base (con escape)
+- **Html helper** — escape seguro, CSRF (campo o cabecera `X-CSRF-Token`), alertas en vista, dump de debug
 
 ### ✅ Calidad de código PHP
-- **PHPStan** nivel 6 — análisis estático
+- **PHPStan 2.x** nivel 6 — análisis estático
+- **Rector** — modernización automática y readiness de versión (set `php85`)
 - **PHP_CodeSniffer** — PSR-12
 - **PHP-CS-Fixer** — autocorrección de estilo
 - **PHPUnit 11** + **Pest 3** — tests unitarios, integración y feature
@@ -47,7 +62,7 @@ Ficheros `.agent/` leídos automáticamente por Claude Code, Cursor y similares:
 - `TASKS.md` — backlog de tareas
 
 ### 🔄 CI/CD
-GitHub Actions con dos jobs paralelos: PHP QA (PHPStan + PHPCS + PHPUnit + Pest) y Front QA (ESLint + Stylelint + Vitest + Playwright).
+GitHub Actions con dos jobs paralelos: PHP QA (PHPStan + Rector + PHPCS + PHPUnit + Pest, matriz PHP 8.2/8.3/8.4/8.5) y Front QA (ESLint + Stylelint + Vitest + Playwright).
 
 ---
 
@@ -55,7 +70,7 @@ GitHub Actions con dos jobs paralelos: PHP QA (PHPStan + PHPCS + PHPUnit + Pest)
 
 | Herramienta | Versión mínima | Notas |
 |---|---|---|
-| PHP | 8.2 | `php --version` |
+| PHP | 8.2 (soporta hasta 8.5) | `php --version` |
 | Composer | 2.x | `composer --version` |
 | Node.js | 20 LTS | Solo modo `fullstack` |
 | npm | 10+ | Solo modo `fullstack` |
@@ -97,7 +112,16 @@ nvm install 20
 
 ## Crear un nuevo proyecto
 
-### Opción A — Clonar y usar el script `init-project.sh`
+### Opción A — `composer create-project` (más rápido)
+
+```bash
+composer create-project miguelex/php-template mi-proyecto
+cd mi-proyecto
+```
+
+Descarga la última versión estable desde Packagist sin la historia de git de la plantilla. Luego ajusta el `name` de `composer.json` e inicializa tu propio repositorio.
+
+### Opción B — Clonar y usar el script `init-project.sh`
 
 ```bash
 git clone https://github.com/miguelex/php-template.git
@@ -120,7 +144,7 @@ El script genera `./mi-proyecto/` con:
 - Ficheros personalizados con el nombre del proyecto
 - Modo `backend` elimina automáticamente gulpfile, vite.config, tests/front, etc.
 
-### Opción B — Fork en GitHub
+### Opción C — Fork en GitHub
 
 1. Hacer fork del repositorio
 2. Clonar tu fork: `git clone https://github.com/TU_USER/php-template.git mi-proyecto`
@@ -225,6 +249,8 @@ composer qa           # Todo: lint + stan + tests (pasar antes de cada commit)
 composer lint         # PHPCS — detecta problemas de estilo
 composer lint:fix     # PHP-CS-Fixer — autocorrige el estilo
 composer stan         # PHPStan — análisis estático nivel 6
+composer rector       # Rector — muestra modernizaciones propuestas (dry-run)
+composer rector:fix   # Rector — aplica las modernizaciones
 composer test         # PHPUnit
 composer test:pest    # Pest
 composer test:cover   # PHPUnit + coverage HTML en storage/coverage/
@@ -319,7 +345,8 @@ php-template/
 │   └── cache/
 │
 ├── composer.json
-├── phpstan.neon                   ← Nivel 6
+├── phpstan.neon                   ← Nivel 6 (PHPStan 2.x)
+├── rector.php                     ← Rector (set php85 + calidad)
 ├── phpcs.xml                      ← PSR-12
 ├── .php-cs-fixer.php
 ├── phpunit.xml
@@ -332,6 +359,7 @@ php-template/
 ├── eslint.config.js
 ├── .stylelintrc.json
 ├── .editorconfig
+├── .gitattributes                 ← Normaliza finales de línea a LF
 ├── .gitignore
 ├── .env.example
 ├── dev.sh                         ← Lanzador tmux
@@ -448,6 +476,30 @@ make migrate
 make migration NAME=create_posts_table
 make controller NAME=Post
 make model NAME=Post
+```
+
+---
+
+## Rutas y middleware
+
+```php
+// config/routes.php
+
+// Ruta simple
+$router->get('/', [HomeController::class, 'index']);
+
+// Parámetros de ruta → llegan como 2º argumento asociativo del handler
+$router->get('/users/{id}', function (Router $router, array $params): void {
+    $id = (int) $params['id'];
+    // ...
+});
+
+// Middleware por ruta (encadenable)
+$router->get('/dashboard', [DashboardController::class, 'index'])
+       ->middleware(App\Middleware\AuthMiddleware::check(...));
+
+// Middleware global (todas las rutas)
+$router->use(App\Middleware\AuthMiddleware::check(...));
 ```
 
 ---
