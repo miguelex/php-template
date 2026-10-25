@@ -5,6 +5,14 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/) y el versionado
 es [SemVer](https://semver.org/). A partir de v2.1 este fichero lo mantiene
 automáticamente [release-please](https://github.com/googleapis/release-please).
 
+## [2.1.0](https://github.com/miguelex/php-template/compare/v2.0.0...v2.1.0) (2026-10-25)
+
+
+### Features
+
+* v2.1 quick-wins — multi-DB, logging, tooling and DX ([cebcb03](https://github.com/miguelex/php-template/commit/cebcb03e98e6870dd967b05e442e1035ee288700))
+* v2.1 quick-wins — multi-DB, logging, tooling and DX ([66b0349](https://github.com/miguelex/php-template/commit/66b0349051226ffd54a5dcdb02e3c948bc5db360))
+
 ## [2.0.0] - 2026-10-24
 
 ### Added
