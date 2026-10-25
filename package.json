@@ -34,7 +34,7 @@
         "autoprefixer": "^10.6.1",
         "browser-sync": "^3.0.3",
         "concurrently": "^10.0.6",
-        "cross-env": "^7.0.3",
+        "cross-env": "^10.1.0",
         "cssnano": "^9.9.0",
         "del": "^9.0.1",
         "eslint": "^10.13.0",
