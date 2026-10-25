@@ -33,11 +33,11 @@
         "@vitest/ui": "^5.0.5",
         "autoprefixer": "^10.6.1",
         "browser-sync": "^3.0.3",
-        "concurrently": "^9.1.0",
+        "concurrently": "^10.0.6",
         "cross-env": "^7.0.3",
-        "cssnano": "^7.0.6",
-        "del": "^7.1.0",
-        "eslint": "^9.13.0",
+        "cssnano": "^9.9.0",
+        "del": "^9.0.1",
+        "eslint": "^10.13.0",
         "gulp": "^5.0.0",
         "gulp-avif": "^1.1.0",
         "gulp-cache": "^1.1.3",
@@ -58,7 +58,7 @@
         "sass": "^1.106.1",
         "stylelint": "^17.16.0",
         "stylelint-config-standard-scss": "^17.0.0",
-        "vite": "^6.0.0",
+        "vite": "^8.3.5",
         "vitest": "^5.0.5"
     }
 }
