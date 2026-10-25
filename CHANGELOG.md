@@ -5,6 +5,13 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/) y el versionado
 es [SemVer](https://semver.org/). A partir de v2.1 este fichero lo mantiene
 automáticamente [release-please](https://github.com/googleapis/release-please).
 
+## [2.1.1](https://github.com/miguelex/php-template/compare/v2.1.0...v2.1.1) (2026-10-25)
+
+
+### Bug Fixes
+
+* **deps:** bump vitest to 5 and stylelint to 17 ([#30](https://github.com/miguelex/php-template/issues/30)) ([c72abfb](https://github.com/miguelex/php-template/commit/c72abfb509e7130d58a551a9c176f6db2a1e78b0))
+
 ## [2.1.0](https://github.com/miguelex/php-template/compare/v2.0.0...v2.1.0) (2026-10-25)
 
 
