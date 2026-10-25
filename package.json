@@ -30,7 +30,7 @@
     "devDependencies": {
         "@playwright/test": "^1.64.1",
         "@vitest/coverage-v8": "^2.1.0",
-        "@vitest/ui": "^2.1.0",
+        "@vitest/ui": "^5.0.5",
         "autoprefixer": "^10.6.1",
         "browser-sync": "^3.0.3",
         "concurrently": "^9.1.0",
