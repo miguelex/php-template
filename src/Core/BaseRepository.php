@@ -68,7 +68,7 @@ abstract class BaseRepository implements RepositoryInterface
     public function delete(int $id): bool
     {
         $stmt = $this->db->prepare(
-            "DELETE FROM {$this->table} WHERE id = :id LIMIT 1",
+            "DELETE FROM {$this->table} WHERE id = :id",
         );
 
         return $stmt->execute([':id' => $id]);
@@ -298,7 +298,7 @@ abstract class BaseRepository implements RepositoryInterface
         }
 
         $stmt = $this->db->prepare(
-            "UPDATE {$this->table} SET {$sets} WHERE id = :id LIMIT 1",
+            "UPDATE {$this->table} SET {$sets} WHERE id = :id",
         );
 
         return $stmt->execute($params);

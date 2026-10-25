@@ -120,7 +120,7 @@ abstract class ActiveRecord
         }
 
         $table = static::$table;
-        $stmt  = self::db()->prepare("DELETE FROM {$table} WHERE id = :id LIMIT 1");
+        $stmt  = self::db()->prepare("DELETE FROM {$table} WHERE id = :id");
 
         return $stmt->execute([':id' => $this->id]);
     }
@@ -282,7 +282,7 @@ abstract class ActiveRecord
 
         $table = static::$table;
         $stmt  = self::db()->prepare(
-            "UPDATE {$table} SET {$sets} WHERE id = :id LIMIT 1",
+            "UPDATE {$table} SET {$sets} WHERE id = :id",
         );
 
         return $stmt->execute($params);

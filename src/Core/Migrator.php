@@ -101,7 +101,7 @@ final readonly class Migrator
         $migration->up();
 
         $this->db->prepare(
-            "INSERT INTO " . self::TABLE . " (migration, ran_at) VALUES (:migration, NOW())",
+            "INSERT INTO " . self::TABLE . " (migration, ran_at) VALUES (:migration, CURRENT_TIMESTAMP)",
         )->execute([':migration' => $file]);
 
         echo "  Migrated:  {$name} ✓\n";
@@ -163,10 +163,11 @@ final readonly class Migrator
 
     private function ensureMigrationsTable(): void
     {
+        // DDL portable (MySQL / SQLite / PostgreSQL): la propia columna
+        // `migration` actúa como clave primaria, evitando AUTO_INCREMENT/SERIAL.
         $this->db->exec(
             "CREATE TABLE IF NOT EXISTS " . self::TABLE . " (
-                id         INT AUTO_INCREMENT PRIMARY KEY,
-                migration  VARCHAR(255) NOT NULL UNIQUE,
+                migration  VARCHAR(255) NOT NULL PRIMARY KEY,
                 ran_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )",
         );

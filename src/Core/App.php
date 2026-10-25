@@ -41,8 +41,15 @@ final class App
 
     private static function connectDatabase(): void
     {
-        // Solo conectar si hay configuración de BD
-        if (empty($_ENV['DB_DATABASE']) || empty($_ENV['DB_HOST'])) {
+        // Solo conectar si hay configuración de BD.
+        // SQLite no requiere host (basta la ruta/`:memory:` en DB_DATABASE).
+        $driver = $_ENV['DB_CONNECTION'] ?? 'mysql';
+
+        if (empty($_ENV['DB_DATABASE'])) {
+            return;
+        }
+
+        if ($driver !== 'sqlite' && empty($_ENV['DB_HOST'])) {
             return;
         }
 

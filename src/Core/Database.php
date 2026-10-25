@@ -23,14 +23,16 @@ final class Database
         }
 
         $driver   = $_ENV['DB_CONNECTION'] ?? 'mysql';
-        $host     = $_ENV['DB_HOST']       ?? '127.0.0.1';
-        $port     = $_ENV['DB_PORT']       ?? '3306';
-        $database = $_ENV['DB_DATABASE']   ?? '';
         $username = $_ENV['DB_USERNAME']   ?? '';
         $password = $_ENV['DB_PASSWORD']   ?? '';
-        $charset  = $_ENV['DB_CHARSET']    ?? 'utf8mb4';
 
-        $dsn = "{$driver}:host={$host};port={$port};dbname={$database};charset={$charset}";
+        $dsn = self::buildDsn($driver);
+
+        // SQLite no usa credenciales.
+        if ($driver === 'sqlite') {
+            $username = '';
+            $password = '';
+        }
 
         $options = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
@@ -50,5 +52,32 @@ final class Database
         }
 
         return self::$instance;
+    }
+
+    /**
+     * Construye el DSN PDO según el driver configurado (DB_CONNECTION).
+     * Soporta mysql, sqlite y pgsql.
+     */
+    private static function buildDsn(string $driver): string
+    {
+        $host     = $_ENV['DB_HOST']     ?? '127.0.0.1';
+        $database = $_ENV['DB_DATABASE'] ?? '';
+
+        return match ($driver) {
+            'sqlite' => 'sqlite:' . ($database),
+            'pgsql'  => sprintf(
+                'pgsql:host=%s;port=%s;dbname=%s',
+                $host,
+                $_ENV['DB_PORT'] ?? '5432',
+                $database,
+            ),
+            default  => sprintf(
+                'mysql:host=%s;port=%s;dbname=%s;charset=%s',
+                $host,
+                $_ENV['DB_PORT'] ?? '3306',
+                $database,
+                $_ENV['DB_CHARSET'] ?? 'utf8mb4',
+            ),
+        };
     }
 }
