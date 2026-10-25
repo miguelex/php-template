@@ -26,8 +26,8 @@
 | Testing PHP    | PHPUnit 11, Pest 3                                |
 | QA PHP         | PHPStan level 6, PHP-CS-Fixer, PHPCS              |
 | Front          | SCSS, JS vanilla (ES2024)                         |
-| Build          | Gulp 5 o Vite 6 (elegir por proyecto)             |
-| Testing JS     | Vitest 2, Playwright                              |
+| Build          | Gulp 5 o Vite 8 (elegir por proyecto)             |
+| Testing JS     | Vitest 5, Playwright                              |
 | CI             | GitHub Actions                                    |
 
 ---

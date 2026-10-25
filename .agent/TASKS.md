@@ -17,6 +17,11 @@
       Ficheros afectados: src/Core/Router.php (resolución del handler), src/Core/App.php (bootstrap del contenedor), public/index.php
       Criterio de aceptación: el Router resuelve controllers y dependencias vía contenedor; tests del contenedor; composer qa verde. Objetivo de versión: v2.2.
 
+- [ ] [FRONT] Arreglar `npm run build:gulp:prod` (roto en main)
+      Motivo: la tarea `scripts` de gulpfile.js concatena con `gulp-concat` los módulos ES de `resources/js/` (que usan `import`/`export`) en un único fichero; terser falla con `SyntaxError: "initComponents" is redeclared` (app.js:17). En dev no minifica y genera un JS que tampoco es válido en el navegador.
+      Ficheros afectados: gulpfile.js (tarea `scripts`), posiblemente package.json (bundler para Gulp, p. ej. esbuild/rollup) o documentar Gulp solo para CSS/imágenes.
+      Criterio de aceptación: `npm run build:gulp:prod` y `npm run build:gulp` terminan en verde y el JS generado funciona en el navegador; añadir el build de Gulp al CI para que no vuelva a romperse.
+
 ## 🟡 Media prioridad
 
 - [ ] [CORE] HTTP PSR-7 + pipeline de middleware PSR-15 — nyholm/psr7 + relay/pipeline
@@ -27,6 +32,7 @@
 ## 🟢 Backlog
 
 - [ ] [FRONT] Modo TypeScript opcional (tsconfig + ESLint typed) sobre Vite.
+- [ ] [FRONT] vite.config.js: sustituir `__dirname` por `import.meta.dirname` (Vite 8 avisa de que no será compatible con `configLoader: 'native'`, futuro por defecto) y separar `outDir` (public/assets) de `publicDir` (public), que Vite marca como solapados.
 - [ ] [CORE] Capa de validación reutilizable (hoy la validación vive ad-hoc en los modelos).
 - [ ] [CI] Servicio PostgreSQL en CI para probar pgsql de verdad (hoy solo MySQL + SQLite).
 
