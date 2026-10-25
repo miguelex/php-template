@@ -1,11 +1,17 @@
 version: 2
 updates:
   # Dependencias PHP (Composer)
+  # minor/patch agrupadas en un único PR; las major siguen en PRs individuales
   - package-ecosystem: "composer"
     directory: "/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
+    groups:
+      composer-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
     labels:
       - "dependencies"
       - "php"
@@ -13,22 +19,32 @@ updates:
       prefix: "chore(deps)"
 
   # Dependencias frontend (npm)
+  # minor/patch agrupadas en un único PR; las major siguen en PRs individuales
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
+    groups:
+      npm-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
     labels:
       - "dependencies"
       - "javascript"
     commit-message:
       prefix: "chore(deps)"
 
-  # Actions de GitHub
+  # Actions de GitHub (todas en un único PR, incluidas major)
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
     labels:
       - "dependencies"
       - "ci"
