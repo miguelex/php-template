@@ -33,7 +33,7 @@
         "@vitest/ui": "^5.0.5",
         "autoprefixer": "^10.6.1",
         "browser-sync": "^3.0.3",
-        "concurrently": "^9.1.0",
+        "concurrently": "^10.0.6",
         "cross-env": "^7.0.3",
         "cssnano": "^7.0.6",
         "del": "^7.1.0",
