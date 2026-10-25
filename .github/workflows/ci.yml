@@ -51,7 +51,7 @@ jobs:
         run: composer test:pest
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         if: matrix.php == '8.3'
         with:
           files: storage/coverage/clover.xml
